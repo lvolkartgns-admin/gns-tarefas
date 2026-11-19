@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Pendências</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      font-family: 'Lexend', Arial, sans-serif;
+      background-color: transparent;
+      color: #1f2937;
+    }
+
+    body {
+      padding: 16px 12px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .container {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 740px;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .header h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: #4b5563;
+      background: #f3f4f6;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .add-task-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .add-task-form input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-task-form input[type="text"]:focus {
+      border-color: #2563eb;
+    }
+
+    .priority-select-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 10px;
+      font-size: 0.82rem;
+      color: #374151;
+    }
+
+    .priority-select-group select {
+      padding: 9px 2px;
+      border: none;
+      background: transparent;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      color: #111827;
+      cursor: pointer;
+    }
+
+    .btn-add {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Seções */
+    .section-block {
+      margin-bottom: 6px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title.priority {
+      color: #b91c1c;
+    }
+
+    .section-title.secondary {
+      color: #1d4ed8;
+    }
+
+    .section-title.noprazo {
+      color: #4b5563;
+    }
+
+    .section-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+
+    /* Linha em negrito separando as seções */
+    .bold-divider {
+      border: 0;
+      height: 3.5px;
+      background-color: #111827;
+      border-radius: 2px;
+      margin: 22px 0;
+    }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .empty-msg {
+      padding: 12px 14px;
+      border: 1px dashed #d1d5db;
+      border-radius: 8px;
+      color: #6b7280;
+      font-size: 0.88rem;
+      text-align: center;
+      background-color: #f9fafb;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .task-item.is-priority {
+      border-left: 4px solid #dc2626;
+    }
+
+    .task-item.is-secondary {
+      border-left: 4px solid #2563eb;
+    }
+
+    .task-item.is-noprazo {
+      border-left: 4px solid #6b7280;
+    }
+
+    .task-item:hover {
+      border-color: #cbd5e1;
+      background-color: #f8fafc;
+    }
+
+    .priority-menu-select {
+      padding: 7px 8px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .priority-menu-select.level-1 {
+      background-color: #fef2f2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .priority-menu-select.level-2 {
+      background-color: #eff6ff;
+      border-color: #93c5fd;
+      color: #1e40af;
+    }
+
+    .priority-menu-select.level-3 {
+      background-color: #f3f4f6;
+      border-color: #d1d5db;
+      color: #374151;
+    }
+
+    .priority-menu-select:focus {
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .task-info {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-text {
+      font-size: 0.94rem;
+      line-height: 1.45;
+      color: #111827;
+      transition: all 0.2s ease;
+      word-break: break-word;
+    }
+
+    .task-timestamp {
+      font-size: 0.75rem;
+      color: #059669;
+      font-weight: 500;
+    }
+
+    .task-item.completed {
+      background-color: #f9fafb;
+      border-color: #e5e7eb;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-complete {
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: none;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      background-color: #10b981;
+      color: #ffffff;
+    }
+
+    .btn-complete:hover {
+      background-color: #059669;
+    }
+
+    .task-item.completed .btn-complete {
+      background-color: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .task-item.completed .btn-complete:hover {
+      background-color: #d1d5db;
+    }
+
+    .btn-remove {
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid #fecaca;
+      background-color: #fef2f2;
+      color: #dc2626;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-remove:hover {
+      background-color: #fee2e2;
+      border-color: #f87171;
+    }
+
+    .footer-actions {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-export-pdf {
+      background-color: #1e293b;
+      color: #ffffff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-export-pdf:hover {
+      background-color: #0f172a;
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 1px solid #d1d5db;
+      color: #4b5563;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset:hover {
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+
+    /* Responsividade para celulares e telas pequenas */
+    @media (max-width: 600px) {
+      body {
+        padding: 8px 6px;
+      }
+
+      .container {
+        padding: 16px 14px;
+        border-radius: 10px;
+      }
+
+      .header h1 {
+        font-size: 1.18rem;
+      }
+
+      .add-task-form {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .add-task-form input[type="text"],
+      .priority-select-group,
+      .btn-add {
+        width: 100%;
+      }
+
+      .priority-select-group {
+        justify-content: space-between;
+        padding: 2px 10px;
+      }
+
+      .priority-select-group select {
+        flex: 1;
+        text-align: right;
+      }
+
+      .task-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .priority-menu-select {
+        width: 100%;
+      }
+
+      .task-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .btn-complete,
+      .btn-remove {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+      }
+
+      .footer-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+
+      .btn-export-pdf,
+      .btn-reset {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Modal de confirmação próprio (compatível com iframe sandboxed do Google Sites) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 22px;
+      max-width: 390px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .modal-box h3 {
+      font-size: 1.05rem;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .modal-box p {
+      font-size: 0.88rem;
+      color: #4b5563;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-modal-cancel {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+
+    .btn-modal-confirm {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: #dc2626;
+      color: #ffffff;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Área de relatório formatada exclusivamente para impressão / PDF */
+    #printReport {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+        display: block;
+      }
+
+      .container, .modal-overlay {
+        display: none !important;
+      }
+
+      #printReport {
+        display: block !important;
+        width: 100%;
+        color: #111827;
+        font-family: 'Lexend', Arial, sans-serif;
+      }
+
+      .report-header {
+        border-bottom: 2px solid #1f2937;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+
+      .report-header h1 {
+        font-size: 18pt;
+        font-weight: 600;
+      }
+
+      .report-meta {
+        font-size: 9pt;
+        color: #4b5563;
+        text-align: right;
+      }
+
+      .report-summary {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 16px;
+        font-size: 10pt;
+        background: #f3f4f6;
+        padding: 10px 14px;
+        border-radius: 6px;
+      }
+
+      .report-section-title {
+        font-size: 11.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin: 14px 0 8px 0;
+        color: #111827;
+      }
+
+      .report-bold-line {
+        border: 0;
+        height: 3px;
+        background-color: #111827;
+        margin: 18px 0;
+      }
+
+      .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.2pt;
+      }
+
+      .report-table th,
+      .report-table td {
+        border: 1px solid #d1d5db;
+        padding: 7px 9px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .report-table th {
+        background-color: #f3f4f6;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 8.2pt;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .status-done {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+
+      .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Pendências e Tarefas</h1>
+      <div class="stats" id="stats">0 de 0 concluídas</div>
+    </div>
+
+    <form class="add-task-form" id="addTaskForm">
+      <input type="text" id="newTaskInput" placeholder="Adicionar nova tarefa..." required>
+      <div class="priority-select-group">
+        <label for="newTaskPriority">Sessão:</label>
+        <select id="newTaskPriority">
+          <option value="1" selected>1 - Prioridade</option>
+          <option value="2">2 - Secundário</option>
+          <option value="3">3 - SEM PRAZO</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-add">+ Adicionar</button>
+    </form>
+
+    <!-- SESSÃO 1: PRIORIDADE -->
+    <section class="section-block">
+      <div class="section-header">
+        <h2 class="section-title priority">1 - PRIORIDADE</h2>
+        <span class="section-badge" id="priorityCount">0 tarefas</span>
+      </div>
+      <ul class="task-list" id="priorityTaskList"></ul>
+    </section>
+
+    <!-- LINHA EM NEGRITO SEPARANDO AS SESSÕES -->
+    <hr class="bold-divider">
+
+    <!-- SESSÃO 2: SECUNDÁRIO -->
+    <section class="section-block">
+      <div class="section-header">
+        <h2 class="section-title secondary">2 - SECUNDÁRIO</h2>
+        <span class="section-badge" id="secondaryCount">0 tarefas</span>
+      </div>
+      <ul class="task-list" id="secondaryTaskList"></ul>
+    </section>
+
+    <!-- LINHA EM NEGRITO SEPARANDO AS SESSÕES -->
+    <hr class="bold-divider">
+
+    <!-- SESSÃO 3: SEM PRAZO -->
+    <section class="section-block">
+      <div class="section-header">
+        <h2 class="section-title noprazo">3 - SEM PRAZO</h2>
+        <span class="section-badge" id="noDeadlineCount">0 tarefas</span>
+      </div>
+      <ul class="task-list" id="noDeadlineTaskList"></ul>
+    </section>
+
+    <div class="footer-actions">
+      <button type="button" class="btn-reset" id="resetBtn">Restaurar lista original</button>
+      <button type="button" class="btn-export-pdf" id="exportPdfBtn">Exportar Relatório PDF</button>
+    </div>
+  </div>
+
+  <!-- Modal próprio para restaurar lista (funciona sem bloqueio no Google Sites) -->
+  <div class="modal-overlay" id="resetModal">
+    <div class="modal-box">
+      <h3>Restaurar lista original?</h3>
+      <p>Todas as alterações e tarefas adicionadas serão substituídas pela lista padrão.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn-modal-cancel" id="cancelResetBtn">Cancelar</button>
+        <button type="button" class="btn-modal-confirm" id="confirmResetBtn">Sim, restaurar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estrutura oculta na tela e exibida na geração do PDF -->
+  <div id="printReport"></div>
+
+  <script>
+    const initialTasks = [
+      "MARLOVA - pendências (reunião passada semana)",
+      "MARLOVA - troca de plano avisar que é com o suporte e agenda (prometeu e não agendou GNS20261810299 (tem acesso na agenda?))",
+      "INMAP SERVICE - manual de rompimento, avisar, mostrar como fazer",
+      "OPA ATENDIMENTOS - verificar andamento diário",
+      "ADRIANO - fazer relatórios, clientes > incidencias X quantidade",
+      "DEGUSTAÇÃO STREAMING - criar usuarios e testar",
+      "SMARTOLT - bairro, campos, on line",
+      "ACS - manual, usuários criar,",
+      "TROCA DE TITULARIDADE - passo a passo",
+      "CLIENTE da Vitória - Robson, check visita",
+      "WATCH - Graziela Pomiê - abrir chamado Watch/CNPJ",
+      "FERIADO SEXTA",
+      "VISITA INSTALAÇÃO - Vinicius - sorteio",
+      "CONSULTA MINHA - enviar comprovante",
+      "VISITAS INSTALAÇÃO - Hemilyn me passar os vídeos e fotos",
+      "REUNIÃO PLANTÃO - Marlova, Kalana e Clairton (ajustes e alinhamentos - ligações, fluxo, reclamações, orientações, me ligar/chamar, registrar atendimentos IXC,",
+      "LOG - editar meu logo, criar setor separado para manuais → streaming",
+      "REFAZER MANUAL WATCH",
+      "ALISSON - enviar manual equipamentos → enviar o que tem para estudar",
+      "MANUAL CANCELAMENTO → estudar",
+      "AJUSTAR PLANILHAS - todas numa só com links (facilita) e colocar no perfil whats",
+      "FERIADO AMANHÃ → reforçar aviso a todos (gerência e grupo)",
+      "LAISA - relatório - Karen"
+    ];
+
+    const STORAGE_KEY = 'pendencias_tarefas_gsites_v2';
+
+    let memoryFallback = null;
+
+    function loadTasksFromStorage() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {
+        if (memoryFallback) return memoryFallback;
+      }
+      return initialTasks.map(text => ({
+        text,
+        priority: 1, // 1 = Prioridade, 2 = Secundário, 3 = SEM PRAZO
+        completed: false,
+        completedAt: null
+      }));
+    }
+
+    function saveTasks() {
+      memoryFallback = tasks;
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } catch (e) {
+        // Fallback silencioso caso o navegador bloqueie storage em iframe
+      }
+    }
+
+    let tasks = loadTasksFromStorage();
+
+    const priorityTaskListEl = document.getElementById('priorityTaskList');
+    const secondaryTaskListEl = document.getElementById('secondaryTaskList');
+    const noDeadlineTaskListEl = document.getElementById('noDeadlineTaskList');
+    const priorityCountEl = document.getElementById('priorityCount');
+    const secondaryCountEl = document.getElementById('secondaryCount');
+    const noDeadlineCountEl = document.getElementById('noDeadlineCount');
+    const statsEl = document.getElementById('stats');
+    const addTaskForm = document.getElementById('addTaskForm');
+    const newTaskInput = document.getElementById('newTaskInput');
+    const newTaskPrioritySelect = document.getElementById('newTaskPriority');
+    const resetBtn = document.getElementById('resetBtn');
+    const resetModal = document.getElementById('resetModal');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const confirmResetBtn = document.getElementById('confirmResetBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const printReportEl = document.getElementById('printReport');
+
+    function formatDateTime(dateObj) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const day = pad(dateObj.getDate());
+      const month = pad(dateObj.getMonth() + 1);
+      const year = dateObj.getFullYear();
+      const hours = pad(dateObj.getHours());
+      const minutes = pad(dateObj.getMinutes());
+      const seconds = pad(dateObj.getSeconds());
+      return `${day}/${month}/${year} às ${hours}:${minutes}:${seconds}`;
+    }
+
+    function updateStats() {
+      const completedCount = tasks.filter(t => t.completed).length;
+      statsEl.textContent = `${completedCount} de ${tasks.length} concluídas`;
+    }
+
+    function createTaskElement(task, index) {
+      const li = document.createElement('li');
+      const level = task.priority === 2 ? 2 : (task.priority === 3 ? 3 : 1);
+      const levelClass = level === 2 ? 'is-secondary' : (level === 3 ? 'is-noprazo' : 'is-priority');
+      li.className = `task-item ${levelClass} ${task.completed ? 'completed' : ''}`;
+
+      const selectMenu = document.createElement('select');
+      selectMenu.className = `priority-menu-select level-${level}`;
+      selectMenu.title = 'Alterar sessão da tarefa';
+
+      const options = [
+        { value: '1', label: '1 - Prioridade' },
+        { value: '2', label: '2 - Secundário' },
+        { value: '3', label: '3 - SEM PRAZO' }
+      ];
+
+      options.forEach(optData => {
+        const opt = document.createElement('option');
+        opt.value = optData.value;
+        opt.textContent = optData.label;
+        if (Number(optData.value) === level) opt.selected = true;
+        selectMenu.appendChild(opt);
+      });
+
+      selectMenu.addEventListener('change', (e) => {
+        tasks[index].priority = parseInt(e.target.value, 10);
+        saveTasks();
+        renderTasks();
+      });
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'task-info';
+
+      const span = document.createElement('span');
+      span.className = 'task-text';
+      span.textContent = task.text;
+      infoDiv.appendChild(span);
+
+      if (task.completed && task.completedAt) {
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'task-timestamp';
+        timeSpan.textContent = `Finalizada em: ${task.completedAt}`;
+        infoDiv.appendChild(timeSpan);
+      }
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'task-actions';
+
+      const btnComplete = document.createElement('button');
+      btnComplete.type = 'button';
+      btnComplete.className = 'btn-complete';
+      btnComplete.textContent = task.completed ? 'Concluída ✓' : 'Concluir';
+      btnComplete.addEventListener('click', () => toggleTask(index));
+
+      const btnRemove = document.createElement('button');
+      btnRemove.type = 'button';
+      btnRemove.className = 'btn-remove';
+      btnRemove.title = 'Remover tarefa';
+      btnRemove.textContent = 'Remover';
+      btnRemove.addEventListener('click', () => removeTask(index));
+
+      actionsDiv.appendChild(btnComplete);
+      actionsDiv.appendChild(btnRemove);
+
+      li.appendChild(selectMenu);
+      li.appendChild(infoDiv);
+      li.appendChild(actionsDiv);
+
+      return li;
+    }
+
+    function renderTasks() {
+      priorityTaskListEl.innerHTML = '';
+      secondaryTaskListEl.innerHTML = '';
+      noDeadlineTaskListEl.innerHTML = '';
+
+      let pCount = 0;
+      let sCount = 0;
+      let nCount = 0;
+
+      tasks.forEach((task, index) => {
+        const li = createTaskElement(task, index);
+        if (task.priority === 2) {
+          secondaryTaskListEl.appendChild(li);
+          sCount++;
+        } else if (task.priority === 3) {
+          noDeadlineTaskListEl.appendChild(li);
+          nCount++;
+        } else {
+          priorityTaskListEl.appendChild(li);
+          pCount++;
+        }
+      });
+
+      if (pCount === 0) {
+        priorityTaskListEl.innerHTML = '<li class="empty-msg">Nenhuma tarefa na sessão Prioridade (1).</li>';
+      }
+
+      if (sCount === 0) {
+        secondaryTaskListEl.innerHTML = '<li class="empty-msg">Nenhuma tarefa na sessão Secundário (2).</li>';
+      }
+
+      if (nCount === 0) {
+        noDeadlineTaskListEl.innerHTML = '<li class="empty-msg">Nenhuma tarefa na sessão SEM PRAZO (3).</li>';
+      }
+
+      priorityCountEl.textContent = `${pCount} ${pCount === 1 ? 'tarefa' : 'tarefas'}`;
+      secondaryCountEl.textContent = `${sCount} ${sCount === 1 ? 'tarefa' : 'tarefas'}`;
+      noDeadlineCountEl.textContent = `${nCount} ${nCount === 1 ? 'tarefa' : 'tarefas'}`;
+
+      updateStats();
+    }
+
+    function toggleTask(index) {
+      const isNowCompleted = !tasks[index].completed;
+      tasks[index].completed = isNowCompleted;
+      tasks[index].completedAt = isNowCompleted ? formatDateTime(new Date()) : null;
+      saveTasks();
+      renderTasks();
+    }
+
+    function removeTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function buildReportTable(taskList) {
+      if (taskList.length === 0) {
+        return `<p style="font-size:9.5pt; color:#6b7280; margin-bottom:10px;">Nenhuma tarefa nesta sessão.</p>`;
+      }
+
+      const rows = taskList.map((task, idx) => {
+        const statusBadge = task.completed
+          ? `<span class="status-badge status-done">Finalizada</span>`
+          : `<span class="status-badge status-pending">Não Finalizada</span>`;
+        const dateText = task.completed && task.completedAt ? task.completedAt : '—';
+
+        return `
+          <tr>
+            <td style="text-align: center; width: 38px;">${idx + 1}</td>
+            <td>${escapeHtml(task.text)}</td>
+            <td style="width: 125px;">${statusBadge}</td>
+            <td style="width: 170px;">${dateText}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th style="text-align: center;">#</th>
+              <th>Tarefa</th>
+              <th>Status</th>
+              <th>Data e Hora da Finalização</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function exportToPDF() {
+      const now = formatDateTime(new Date());
+      const total = tasks.length;
+      const doneCount = tasks.filter(t => t.completed).length;
+      const pendingCount = total - doneCount;
+
+      const priorityTasks = tasks.filter(t => t.priority !== 2 && t.priority !== 3);
+      const secondaryTasks = tasks.filter(t => t.priority === 2);
+      const noDeadlineTasks = tasks.filter(t => t.priority === 3);
+
+      const reportHtml = `
+        <div class="report-header">
+          <h1>Relatório de Pendências e Tarefas</h1>
+          <div class="report-meta">
+            Gerado em:<br><strong>${now}</strong>
+          </div>
+        </div>
+        <div class="report-summary">
+          <div><strong>Total de Tarefas:</strong> ${total}</div>
+          <div><strong>Finalizadas:</strong> ${doneCount}</div>
+          <div><strong>Não Finalizadas:</strong> ${pendingCount}</div>
+        </div>
+
+        <h2 class="report-section-title">1 - PRIORIDADE (${priorityTasks.length})</h2>
+        ${buildReportTable(priorityTasks)}
+
+        <hr class="report-bold-line">
+
+        <h2 class="report-section-title">2 - SECUNDÁRIO (${secondaryTasks.length})</h2>
+        ${buildReportTable(secondaryTasks)}
+
+        <hr class="report-bold-line">
+
+        <h2 class="report-section-title">3 - SEM PRAZO (${noDeadlineTasks.length})</h2>
+        ${buildReportTable(noDeadlineTasks)}
+      `;
+
+      printReportEl.innerHTML = reportHtml;
+
+      try {
+        const printWin = window.open('', '_blank', 'width=900,height=700');
+        if (printWin) {
+          printWin.document.write(`
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8">
+              <title>Relatório de Pendências e Tarefas</title>
+              <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+              <style>
+                body { font-family: 'Lexend', Arial, sans-serif; color: #111827; padding: 24px; }
+                .report-header { border-bottom: 2px solid #1f2937; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+                .report-header h1 { font-size: 18pt; font-weight: 600; margin: 0; }
+                .report-meta { font-size: 9pt; color: #4b5563; text-align: right; }
+                .report-summary { display: flex; gap: 20px; margin-bottom: 16px; font-size: 10pt; background: #f3f4f6; padding: 10px 14px; border-radius: 6px; }
+                .report-section-title { font-size: 11.5pt; font-weight: 700; text-transform: uppercase; margin: 14px 0 8px 0; }
+                .report-bold-line { border: 0; height: 3px; background-color: #111827; margin: 18px 0; }
+                .report-table { width: 100%; border-collapse: collapse; font-size: 9.2pt; }
+                .report-table th, .report-table td { border: 1px solid #d1d5db; padding: 7px 9px; text-align: left; vertical-align: top; }
+                .report-table th { background-color: #f3f4f6; font-weight: 600; }
+                .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 8.2pt; font-weight: 600; white-space: nowrap; }
+                .status-done { background-color: #d1fae5; color: #065f46; }
+                .status-pending { background-color: #fef3c7; color: #92400e; }
+              </style>
+            </head>
+            <body>
+              ${reportHtml}
+              <script>
+                window.onload = function() { window.print(); };
+              <\/script>
+            </body>
+            </html>
+          `);
+          printWin.document.close();
+          return;
+        }
+      } catch (e) {
+        // Fallback para impressão na própria janela
+      }
+
+      window.print();
+    }
+
+    addTaskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = newTaskInput.value.trim();
+      const level = parseInt(newTaskPrioritySelect.value, 10);
+
+      if (!text) return;
+
+      tasks.unshift({ text, priority: level, completed: false, completedAt: null });
+      newTaskInput.value = '';
+      saveTasks();
+      renderTasks();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetModal.classList.add('active');
+    });
+
+    cancelResetBtn.addEventListener('click', () => {
+      resetModal.classList.remove('active');
+    });
+
+    confirmResetBtn.addEventListener('click', () => {
+      tasks = initialTasks.map(text => ({ text, priority: 1, completed: false, completedAt: null }));
+      saveTasks();
+      renderTasks();
+      resetModal.classList.remove('active');
+    });
+
+    resetModal.addEventListener('click', (e) => {
+      if (e.target === resetModal) {
+        resetModal.classList.remove('active');
+      }
+    });
+
+    exportPdfBtn.addEventListener('click', exportToPDF);
+
+    renderTasks();
+  </script>
+</body>
+</html>
